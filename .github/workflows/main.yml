@@ -2,7 +2,7 @@ name: EMON-JE-BOT Auto Run
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # প্রতি ৩০ মিনিটে auto run
+    - cron: "*/30 * * * *"   # only 1seccond auto run
   workflow_dispatch:
 
 jobs:
@@ -13,6 +13,6 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: 18.x
+        node-version: 20.x
     - run: npm install
     - run: npm start
