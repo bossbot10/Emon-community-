@@ -1,28 +1,17 @@
-
-    {
-      uri: "https://graph.facebook.com/v17.0/me/messages",
-      qs: { access_token: PAGE_ACCESS_TOKEN },
-      method: "POST",
-      json: requestBody
-    },
-    (err, res, body) => {
-      if (!err) {
-        console.log("💬 const express = require("express");
+// index.js
+const express = require("express");
 const bodyParser = require("body-parser");
 const request = require("request");
 
 const app = express();
 app.use(bodyParser.json());
 
-// 👉 এখানে তোমার Facebook Page Access Token বসাও
-const PAGE_ACCESS_TOKEN = "YOUR_PAGE_ACCESS_TOKEN";61580464035642
+// ====== CONFIGURE THESE ======
+const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN || "YOUR_PAGE_ACCESS_TOKEN";61580464035642
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "YOUR_VERIFY_TOKEN";61580464035642
+// ==============================
 
-// 👉 এখানে নিজের তৈরি VERIFY TOKEN দাও (যেটা webhook setup করার সময় লাগবে)
-const VERIFY_TOKEN = "YOUR_VERIFY_TOKEN";const VERIFY_TOKEN = "emon123";
-
-// -------------------------
-// Webhook Verification
-// -------------------------
+// Webhook verification
 app.get("/webhook", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
@@ -36,19 +25,53 @@ app.get("/webhook", (req, res) => {
   }
 });
 
-// -------------------------
-// Incoming Messages Handle
-// -------------------------
+// Webhook receiver for messages and page feed events
 app.post("/webhook", (req, res) => {
   const body = req.body;
 
+  // Messenger messages (page inbox)
   if (body.object === "page") {
+    // `entry` can contain messaging events OR changes (for feed)
     body.entry.forEach(entry => {
-      const webhookEvent = entry.messaging[0];
-      const senderPsid = webhookEvent.sender.id;
+      // 1) Messaging events (inbox)
+      if (entry.messaging) {
+        entry.messaging.forEach(event => {
+          if (event.message && !event.message.is_echo) {
+            const senderPsid = event.sender.id;
+            const text = event.message.text || "";
+            handleInboxMessage(senderPsid, text);
+          }
+        });
+      }
 
-      if (webhookEvent.message) {
-        handleMessage(senderPsid, webhookEvent.message);
+      // 2) Feed changes (comments / posts)
+      if (entry.changes) {
+        entry.changes.forEach(change => {
+          // change.field === 'feed' -> new comments/posts on page
+          if (change.field === "feed") {
+            // change.value has details
+            const val = change.value || {};
+            // comment creation example: val.item === "comment"
+            if (val.item === "comment" && val.verb === "add") {
+              const commentId = val.comment_id || val.comment?.id || null;
+              const message = val.message || "";
+              const from = val.from || {};
+              // reply to the comment (create a sub-comment)
+              if (commentId) {
+                replyToComment(commentId, `ধন্যবাদ! আমরা আপনার কমেন্ট পেয়েছি।`);
+              }
+            }
+
+            // new post example (if you want to comment on post)
+            if (val.item === "post" && val.verb === "add") {
+              const postId = val.post_id || val.post?.id || null;
+              if (postId) {
+                // optional: comment on the post
+                commentOnPost(postId, `ধন্যবাদ পোস্ট করার জন্য!`);
+              }
+            }
+          }
+        });
       }
     });
 
@@ -58,26 +81,13 @@ app.post("/webhook", (req, res) => {
   }
 });
 
-// -------------------------
-// Handle Message
-// -------------------------
-function handleMessage(senderPsid, receivedMessage) {
-  let response;
-
-  if (receivedMessage.text) {
-    response = {
-      text: `আপনার মেসেজ পেয়েছি: "${receivedMessage.text}" ✅`
-    };
-  } else {
-    response = { text: "আমি শুধু টেক্সট রিপ্লাই দিতে পারি 🙂" };
-  }
-
-  callSendAPI(senderPsid, response);
+// ----------------- Handler functions -----------------
+function handleInboxMessage(senderPsid, text) {
+  // customize auto-reply logic here
+  const replyText = `আপনার মেসেজ পেয়েছি: "${text}".  শুনলাম — আমরা শীঘ্রই রেসপন্ড করব। ✅`;
+  callSendAPI(senderPsid, { text: replyText });
 }
 
-// -------------------------
-// Send Message Back
-// -------------------------
 function callSendAPI(senderPsid, response) {
   const requestBody = {
     recipient: { id: senderPsid },
@@ -92,17 +102,42 @@ function callSendAPI(senderPsid, response) {
       json: requestBody
     },
     (err, res, body) => {
-      if (!err) {
-        console.log("💬 Message sent!");
-      } else {
-        console.error("❌ Unable to send message:" + err);
-      }
+      if (!err) console.log("💬 Message sent to inbox!");
+      else console.error("❌ send message error:", err, body);
     }
   );
 }
 
-// -------------------------
-// Start Server
-// -------------------------
+function replyToComment(commentId, text) {
+  // POST /{comment-id}/comments
+  request(
+    {
+      uri: `https://graph.facebook.com/v17.0/${commentId}/comments`,
+      qs: { access_token: PAGE_ACCESS_TOKEN, message: text },
+      method: "POST"
+    },
+    (err, res, body) => {
+      if (!err) console.log("💬 Replied to comment:", commentId);
+      else console.error("❌ reply comment error:", err, body);
+    }
+  );
+}
+
+function commentOnPost(postId, text) {
+  // POST /{post-id}/comments
+  request(
+    {
+      uri: `https://graph.facebook.com/v17.0/${postId}/comments`,
+      qs: { access_token: PAGE_ACCESS_TOKEN, message: text },
+      method: "POST"
+    },
+    (err, res, body) => {
+      if (!err) console.log("💬 Commented on post:", postId);
+      else console.error("❌ comment post error:", err, body);
+    }
+  );
+}
+
+// Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Bot running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
