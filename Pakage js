@@ -7,8 +7,7 @@
     "start": "node index.js",
     "test": "echo \"No test specified\" && exit 0"
   },
-  "keywords": [],
-  "author": "",
+  "author": "Emon",
   "license": "ISC",
   "dependencies": {}
 }
