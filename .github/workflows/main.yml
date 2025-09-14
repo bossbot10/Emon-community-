@@ -1,18 +1,15 @@
-name: EMON-JE-BOT Auto Run
+Wrote to /data/data/com.termux/files/home/package.json:
 
-on:
-  schedule:
-    - cron: "*/30 * * * *"   # only 1seccond auto run
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 20.x
-    - run: npm install
-    - run: npm start
+{
+  "name": "home",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
