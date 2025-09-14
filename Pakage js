@@ -1,12 +1,14 @@
 {
-  "name": "emon-je-bot",
+  "name": "emon-community",
   "version": "1.0.0",
-  "description": "A simple auto-reply bot",
+  "description": "Emon community project",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "echo \"No test specified\" && exit 0"
   },
-  "dependencies": {
-    "axios": "^1.6.7"
-  }
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {}
 }
