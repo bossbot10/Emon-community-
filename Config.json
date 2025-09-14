@@ -1,1 +1,10 @@
-
+{
+  "name": "Emon-community",
+  "version": "1.0.0",
+  "description": "Community bot project",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {}
+}
