@@ -1,7 +1,6 @@
 {
-  "name": "emon-bot",
+  "name": "emon-community",
   "version": "1.0.0",
-  "description": "Facebook Messenger Auto Reply Bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
