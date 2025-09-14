@@ -1,23 +1,16 @@
-const login = require("fca-unofficial");
-const fs = require("fs");
+~ $ npm init -y
+Wrote to /data/data/com.termux/files/home/package.json:
 
-// Config file পড়া
-const config = JSON.parse(fs.readFileSync("config.json", "utf8"));
-
-login({ appState: require(`./${config.APPSTATEPATH}`) }, (err, api) => {
-    if (err) return console.error(err);
-
-    api.setOptions(config.FCAOption);
-    console.log(`${config.BOTNAME} is now running...`);
-
-    api.listenMqtt((err, event) => {
-        if (err) return console.error(err);
-
-        if (event.type === "message") {
-            let msg = event.body || "";
-
-            // সব মেসেজে reply দেবে
-            api.sendMessage(`👋 Hi, I'm ${config.BOTNAME}\nYou said: ${msg}`, event.threadID, event.messageID);
-        }
-    });
-});
+{
+  "name": "home",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
